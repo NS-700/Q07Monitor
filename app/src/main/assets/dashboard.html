@@ -1,0 +1,449 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Q07 Монитор</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: single-dark automotive HUD. Hero (charge ring + range) over an auto-fit card grid. */
+:root{
+  --bg:#0a0f1a; --bg2:#0d1522; --card:#141f30; --card2:#1b2a40; --line:#243449;
+  --fg:#eaf1fb; --muted:#8ea3c0; --dim:#5f7390;
+  --amber:#ffc24a; --green:#36d6a0; --blue:#5aa6ff; --red:#ff6b6b; --violet:#b58bff;
+  --ring-track:#1e2c42;
+  --fdisplay:"Chakra Petch",ui-sans-serif,system-ui,sans-serif;
+  --fbody:"Manrope",ui-sans-serif,system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{background:
+    radial-gradient(1200px 600px at 80% -10%, #16233a 0%, rgba(22,35,58,0) 60%),
+    radial-gradient(900px 500px at -10% 110%, #122032 0%, rgba(18,32,50,0) 55%),
+    var(--bg);
+  color:var(--fg); font-family:var(--fbody); margin:0; -webkit-font-smoothing:antialiased;}
+.wrap{max-width:1500px; margin:0 auto; padding-block:18px 48px; padding-inline:16px;}
+.tnum{font-variant-numeric:tabular-nums}
+
+/* header */
+header{display:flex; align-items:center; gap:14px; margin-bottom:18px; flex-wrap:wrap;}
+.brand{display:flex; align-items:baseline; gap:10px; min-width:0;}
+.brand h1{font-family:var(--fdisplay); font-weight:700; font-size:clamp(22px,4.5vw,30px); letter-spacing:.5px; margin:0;}
+.brand .sub{color:var(--muted); font-size:13px; letter-spacing:.14em; text-transform:uppercase;}
+.status{margin-left:auto; display:flex; align-items:center; gap:10px; flex-wrap:wrap;}
+.dot{width:9px; height:9px; border-radius:50%; background:var(--green); box-shadow:0 0 0 4px rgba(54,214,160,.15);}
+.dot.demo{background:var(--amber); box-shadow:0 0 0 4px rgba(255,194,74,.15);}
+.dot.err{background:var(--red); box-shadow:0 0 0 4px rgba(255,107,107,.15);}
+.pill{font-size:12px; color:var(--muted); background:var(--card); border:1px solid var(--line); padding:6px 11px; border-radius:999px;}
+.gear{cursor:pointer; background:var(--card); border:1px solid var(--line); color:var(--fg); width:40px; height:40px; border-radius:12px; font-size:18px; display:grid; place-items:center;}
+.gear:hover{background:var(--card2)}
+
+/* hero */
+.hero{display:grid; grid-template-columns:minmax(240px,340px) 1fr; gap:16px; margin-bottom:16px;}
+@media(max-width:720px){ .hero{grid-template-columns:1fr} }
+.panel{background:linear-gradient(180deg,var(--card) 0%,var(--bg2) 100%); border:1px solid var(--line); border-radius:22px; padding:22px;}
+.ringwrap{display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;}
+.ring{position:relative; width:230px; max-width:62vw; aspect-ratio:1;}
+.ring svg{width:100%; height:100%; transform:rotate(-90deg)}
+.ring .ctr{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center;}
+.ring .pct{font-family:var(--fdisplay); font-weight:700; font-size:46px; line-height:1;}
+.ring .pct small{font-size:22px; opacity:.7; margin-left:2px}
+.ring .kwh{color:var(--muted); font-size:13px; margin-top:6px}
+.ring .lbl{color:var(--muted); font-size:12px; letter-spacing:.16em; text-transform:uppercase; margin-top:2px}
+
+.heroright{display:grid; grid-template-rows:auto 1fr; gap:14px;}
+.rangebig{display:flex; align-items:flex-end; gap:14px; flex-wrap:wrap}
+.rangebig .big{font-family:var(--fdisplay); font-weight:700; font-size:clamp(44px,9vw,72px); line-height:.9; color:var(--amber);}
+.rangebig .big small{font-size:.4em; color:var(--muted); margin-left:6px}
+.rangebig .note{color:var(--muted); font-size:13px; padding-bottom:8px}
+.qrow{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+@media(max-width:420px){ .qrow{grid-template-columns:repeat(3,1fr); gap:8px} }
+.q{background:var(--card2); border:1px solid var(--line); border-radius:16px; padding:14px;}
+.q .k{color:var(--muted); font-size:12px; letter-spacing:.06em; text-transform:uppercase}
+.q .v{font-family:var(--fdisplay); font-weight:600; font-size:clamp(20px,5vw,30px); margin-top:6px; line-height:1}
+.q .v small{font-size:.5em; color:var(--muted); margin-left:3px}
+
+/* card grid */
+.grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:16px;}
+.card{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px 20px; min-width:0;}
+.card h2{font-size:12.5px; letter-spacing:.16em; text-transform:uppercase; color:var(--muted); margin:0 0 14px; font-weight:600; display:flex; align-items:center; gap:8px;}
+.card h2 .ic{font-size:15px}
+.rows{display:flex; flex-direction:column; gap:11px;}
+.r{display:flex; align-items:baseline; justify-content:space-between; gap:12px;}
+.r .lbl{color:var(--muted); font-size:14px; min-width:0}
+.r .val{font-weight:600; font-size:16px; text-align:right; white-space:nowrap}
+.r .val.big{font-family:var(--fdisplay); font-size:20px}
+
+/* cost card */
+.cost{display:flex; flex-direction:column; gap:12px}
+.period{border:1px solid var(--line); border-radius:14px; padding:12px 14px; background:var(--bg2)}
+.period .top{display:flex; justify-content:space-between; align-items:baseline; gap:10px; margin-bottom:6px}
+.period .name{font-weight:700; font-size:14px}
+.period .dist{color:var(--muted); font-size:13px}
+.period .brk{color:var(--muted); font-size:12.5px}
+.period .tot{font-family:var(--fdisplay); font-weight:700; font-size:19px; color:var(--green); margin-top:4px}
+.period .tot small{color:var(--muted); font-size:12px; font-family:var(--fbody); font-weight:500}
+
+/* tires */
+.tires{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.tire{background:var(--bg2); border:1px solid var(--line); border-radius:14px; padding:12px; text-align:center}
+.tire .pos{color:var(--muted); font-size:11px; letter-spacing:.1em; text-transform:uppercase}
+.tire .bar{font-family:var(--fdisplay); font-weight:700; font-size:22px; margin:4px 0 1px}
+.tire .t{color:var(--muted); font-size:12.5px}
+
+.power .big{font-family:var(--fdisplay); font-weight:700; font-size:34px; line-height:1}
+.gaugebar{height:9px; border-radius:6px; background:var(--ring-track); overflow:hidden; margin-top:12px}
+.gaugebar i{display:block; height:100%; width:0; border-radius:6px; transition:width .4s ease}
+
+/* settings */
+.ov{position:fixed; inset:0; background:rgba(4,8,14,.6); backdrop-filter:blur(4px); display:grid; place-items:center; padding:16px; z-index:40;}
+.sheet{background:var(--card); border:1px solid var(--line); border-radius:22px; padding:22px; width:min(460px,100%); max-height:90vh; overflow:auto}
+.sheet h3{font-family:var(--fdisplay); margin:0 0 4px; font-size:22px}
+.sheet p.hint{color:var(--muted); font-size:13px; margin:0 0 18px; line-height:1.5}
+label.f{display:block; margin-bottom:14px}
+label.f span{display:block; color:var(--muted); font-size:13px; margin-bottom:6px}
+label.f input{width:100%; background:var(--bg2); border:1px solid var(--line); color:var(--fg); border-radius:12px; padding:12px 14px; font-size:15px; font-family:var(--fbody)}
+label.f input:focus{outline:2px solid var(--blue); outline-offset:1px}
+.frow{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+.btns{display:flex; gap:10px; margin-top:8px}
+.btn{flex:1; border:none; border-radius:12px; padding:13px; font-size:15px; font-weight:700; cursor:pointer; font-family:var(--fbody)}
+.btn.p{background:var(--amber); color:#1a1300}
+.btn.s{background:var(--card2); color:var(--fg); border:1px solid var(--line)}
+footer{color:var(--dim); font-size:12px; text-align:center; margin-top:28px; line-height:1.6}
+.muted{color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">
+      <h1>Q07 МОНИТОР</h1>
+      <span class="sub">Changan Qiyuan</span>
+    </div>
+    <div class="status">
+      <span class="pill" id="updated">—</span>
+      <span class="pill" id="statetxt"><span class="dot demo" id="dot"></span> демо</span>
+      <button class="gear" id="gearBtn" title="Настройки" aria-label="Настройки">⚙</button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <div class="panel ringwrap">
+      <div class="ring">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="var(--ring-track)" stroke-width="10"/>
+          <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="var(--green)" stroke-width="10"
+                  stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7"
+                  style="transition:stroke-dashoffset .5s ease, stroke .4s ease"/>
+        </svg>
+        <div class="ctr">
+          <div class="pct tnum" id="socPct">—<small>%</small></div>
+          <div class="kwh tnum" id="socKwh">— / 30.2 кВт·ч</div>
+          <div class="lbl">Заряд</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel heroright">
+      <div>
+        <div class="rangebig">
+          <div class="big tnum" id="rangeEv">—<small>км</small></div>
+          <div class="note">запас на электро<br><span id="rangeTot" class="muted">всего — км</span></div>
+        </div>
+      </div>
+      <div class="qrow">
+        <div class="q"><div class="k">Скорость</div><div class="v tnum" id="speed">—<small>км/ч</small></div></div>
+        <div class="q"><div class="k">Мощность</div><div class="v tnum" id="pwrQ">—</div></div>
+        <div class="q"><div class="k">Газ</div><div class="v tnum" id="pedal">—<small>%</small></div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="grid">
+    <!-- power detail -->
+    <div class="card power">
+      <h2><span class="ic">⚡</span> Мощность</h2>
+      <div class="big" id="pwrBig">—</div>
+      <div class="gaugebar"><i id="pwrBar"></i></div>
+      <div class="rows" style="margin-top:14px">
+        <div class="r"><span class="lbl">Батарея</span><span class="val tnum" id="batV">— В</span></div>
+        <div class="r"><span class="lbl">Ток (заряд/рекуп)</span><span class="val tnum" id="batA">— А</span></div>
+      </div>
+    </div>
+
+    <!-- cost -->
+    <div class="card">
+      <h2><span class="ic">💵</span> Расходы и стоимость</h2>
+      <div class="cost" id="costBox"></div>
+    </div>
+
+    <!-- odometer -->
+    <div class="card">
+      <h2><span class="ic">🧭</span> Пробег и запас</h2>
+      <div class="rows">
+        <div class="r"><span class="lbl">Пробег всего</span><span class="val big tnum" id="odo">— км</span></div>
+        <div class="r"><span class="lbl">на электро</span><span class="val tnum" id="odoE">— км</span></div>
+        <div class="r"><span class="lbl">на топливе</span><span class="val tnum" id="odoF">— км</span></div>
+        <div class="r"><span class="lbl">Запас эл. / всего</span><span class="val tnum" id="rng2">— / — км</span></div>
+        <div class="r"><span class="lbl">Остаток топлива</span><span class="val tnum" id="fuel">—</span></div>
+      </div>
+    </div>
+
+    <!-- temps -->
+    <div class="card">
+      <h2><span class="ic">🌡</span> Температуры и 12В</h2>
+      <div class="rows">
+        <div class="r"><span class="lbl">Батарея ср / макс / мин</span><span class="val tnum" id="tbat">— °C</span></div>
+        <div class="r"><span class="lbl">DC-DC</span><span class="val tnum" id="tdc">— °C</span></div>
+        <div class="r"><span class="lbl">Снаружи</span><span class="val tnum" id="tout">— °C</span></div>
+        <div class="r"><span class="lbl">Салон</span><span class="val tnum" id="tcab">— °C</span></div>
+        <div class="r"><span class="lbl">12В аккумулятор</span><span class="val tnum" id="v12">— В</span></div>
+      </div>
+    </div>
+
+    <!-- tires -->
+    <div class="card">
+      <h2><span class="ic">🛞</span> Шины</h2>
+      <div class="tires">
+        <div class="tire"><div class="pos">Перёд Л</div><div class="bar tnum" id="tfl">—</div><div class="t tnum" id="tflT">— °</div></div>
+        <div class="tire"><div class="pos">Перёд П</div><div class="bar tnum" id="tfr">—</div><div class="t tnum" id="tfrT">— °</div></div>
+        <div class="tire"><div class="pos">Зад Л</div><div class="bar tnum" id="trl">—</div><div class="t tnum" id="trlT">— °</div></div>
+        <div class="tire"><div class="pos">Зад П</div><div class="bar tnum" id="trr">—</div><div class="t tnum" id="trrT">— °</div></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    Данные с бортового логгера через твой сервер. <span id="srcLine" class="muted">Источник: демо</span><br>
+    Обновление каждые <span id="ivLine">3</span> c · цены и адрес сервера — в настройках ⚙
+  </footer>
+</div>
+
+<div class="ov" id="settings" hidden>
+  <div class="sheet">
+    <h3>Настройки</h3>
+    <p class="hint">Адрес, по которому твой сервер отдаёт последние данные (JSON). Внутри приложения, размещённого на том же сервере, можно оставить относительный путь <code>latest.json</code>. Пусто — показываются демо-данные.</p>
+    <label class="f"><span>Адрес данных (URL)</span><input id="cfgUrl" placeholder="https://твой-сервер/latest  или  latest.json"></label>
+    <label class="f"><span>Ключ доступа (необязательно)</span><input id="cfgKey" placeholder="добавится как ?key=…"></label>
+    <div class="frow">
+      <label class="f"><span>Цена электро, ман/кВт·ч</span><input id="cfgElec" inputmode="decimal" placeholder="0.05"></label>
+      <label class="f"><span>Цена бензина, ман/л</span><input id="cfgFuel" inputmode="decimal" placeholder="1.40"></label>
+    </div>
+    <label class="f"><span>Период обновления, сек</span><input id="cfgIv" inputmode="numeric" placeholder="3"></label>
+    <div class="btns">
+      <button class="btn s" id="cancelBtn">Отмена</button>
+      <button class="btn p" id="saveBtn">Сохранить</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+var LS = "q07mon";
+var DEF = { url:"", key:"", elec:"0.05", fuel:"1.40", iv:"3" };
+var FULLCAP = 30.2;
+var STRONG = {"-252":1,"-255":1,"20000":1,"-20000":1,"-75":1,"-200":1,"65535":1,"1023":1,"-9999":1,"-32768":1};
+
+function loadCfg(){ try{ var s=localStorage.getItem(LS); if(s){ return Object.assign({},DEF,JSON.parse(s)); } }catch(e){} return Object.assign({},DEF); }
+function saveCfg(c){ try{ localStorage.setItem(LS, JSON.stringify(c)); }catch(e){} }
+var cfg = loadCfg();
+
+// demo tripEnergyConsume (realistic, from a real drive log)
+var DEMO_TEC = {
+  current:{driveConsume:0.8,annexConsume:0.0,driveFuel:0,annexFuel:0,distance:3.9,avgConsume:18.8},
+  charge: {driveConsume:6.1,annexConsume:4.6,driveFuel:0,annexFuel:0,distance:41.2,avgConsume:17.3},
+  tripA:  {driveConsume:293.1,annexConsume:93.4,driveFuel:0,annexFuel:0,distance:1958.6,avgConsume:16.8},
+  total:  {driveConsume:921.9,annexConsume:369.1,driveFuel:40.3,annexFuel:0,distance:6468.2,avgConsume:16.2,avgFuel:0.6}
+};
+var DEMO = {
+  "vehicle.drive.speedValue":"0",
+  "vehicle.drive.remainingElectric":"95",
+  "vehicle.energyRecycle.bcuBatteryResEgy1":"28.1",
+  "vehicle.drive.totalVoltage":"379",
+  "vehicle.drive.totalCurrent":"0",
+  "vehicle.energyRecycle.energyIndicate":"0",
+  "vehicle.drive.accelPedalPos":"[0,0]",
+  "vehicle.energyRecycle.vcuEvDrvResiMilg":"157",
+  "vehicle.energyRecycle.restMileInfo":"476",
+  "vehicle.drive.totalMileage":"6512.5",
+  "vehicle.drive.totalMileageElectricity":"6005.7",
+  "vehicle.drive.totalMileageFuel":"506.8",
+  "vehicle.energyRecycle.residueFuelInfo":"[16,32]",
+  "vehicle.airCondition.acInnerTemp":"31",
+  "vehicle.drive.averageTemperature":"27",
+  "vehicle.drive.maxTemperature":"28",
+  "vehicle.drive.minTemperature":"26",
+  "vehicle.energyRecycle.dcDCTemperature":"38",
+  "vehicle.drive.outsideTemperature":"29",
+  "vehicle.drive.loBattU":"14.1",
+  "vehicle.drive.flTireState":"2.4","vehicle.drive.frTireState":"2.3","vehicle.drive.lrTireState":"2.4","vehicle.drive.rrTireState":"2.2",
+  "vehicle.drive.flTireTemp":"35","vehicle.drive.frTireTemp":"27","vehicle.drive.lrTireTemp":"34","vehicle.drive.rrTireTemp":"26",
+  "vehicle.energyRecycle.tripEnergyConsume":JSON.stringify(DEMO_TEC)
+};
+
+var state = { data:DEMO, live:false, err:false, ts:null };
+
+// ---- helpers ----
+function raw(k){ var v=state.data?state.data[k]:null; return (v===undefined)?null:v; }
+function num(k){ var v=raw(k); if(v==null) return NaN; var t=(""+v).trim(); if(STRONG[t]) return NaN; var f=parseFloat(t); return isNaN(f)?NaN:f; }
+function firstNum(k){ var v=raw(k); if(v==null) return NaN; var m=(""+v).match(/-?\d+(?:\.\d+)?/); return m?parseFloat(m[0]):NaN; }
+function f1(x){ return isNaN(x)?"—":x.toFixed(1); }
+function i0(x){ return isNaN(x)?"—":Math.round(x).toString(); }
+function price(key,def){ var v=parseFloat((""+(cfg[key]||def)).trim().replace(",",".")); return isNaN(v)?def:v; }
+
+function socDecimal(){
+  var S=num("vehicle.drive.remainingElectric"), e=num("vehicle.energyRecycle.bcuBatteryResEgy1");
+  if(!isNaN(S)){ var off=0; if(!isNaN(e)) off=Math.max(-0.4,Math.min(0.4, e/FULLCAP*100-S)); return S>=100?100:Math.min(100,S+off); }
+  return isNaN(e)?NaN:Math.min(100,e/FULLCAP*100);
+}
+function tec(){ try{ return JSON.parse(raw("vehicle.energyRecycle.tripEnergyConsume")); }catch(e){ return null; } }
+function jd(p,k){ if(!p) return NaN; var v=p[k]; if(v==null||v===-255) return NaN; v=parseFloat(v); return isNaN(v)?NaN:v; }
+function secElec(p){ var dc=jd(p,"driveConsume"),an=jd(p,"annexConsume"); return (isNaN(dc)?0:dc)+(isNaN(an)?0:an); }
+function secFuel(p){ var df=jd(p,"driveFuel"),af=jd(p,"annexFuel"); return (isNaN(df)?0:df)+(isNaN(af)?0:af); }
+
+// ---- render ----
+var C=326.7; // 2*pi*52
+function set(id,txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+function sethtml(id,h){ var el=document.getElementById(id); if(el) el.innerHTML=h; }
+
+function render(){
+  // charge ring
+  var soc=socDecimal(), e=num("vehicle.energyRecycle.bcuBatteryResEgy1");
+  var arc=document.getElementById("ringArc");
+  var pc=isNaN(soc)?0:soc;
+  arc.setAttribute("stroke-dashoffset", (C*(1-pc/100)).toFixed(1));
+  arc.setAttribute("stroke", pc<=15?"var(--red)":pc<=35?"var(--amber)":"var(--green)");
+  sethtml("socPct", (isNaN(soc)?"—":soc.toFixed(1))+'<small>%</small>');
+  set("socKwh", (isNaN(e)?"—":e.toFixed(1))+" / "+FULLCAP+" кВт·ч");
+
+  // range
+  var ev=num("vehicle.energyRecycle.vcuEvDrvResiMilg"), tot=num("vehicle.energyRecycle.restMileInfo");
+  sethtml("rangeEv", (isNaN(ev)?"—":Math.round(ev))+'<small>км</small>');
+  set("rangeTot", "всего "+(isNaN(tot)?"—":Math.round(tot))+" км");
+  set("rng2", (isNaN(ev)?"—":Math.round(ev))+" / "+(isNaN(tot)?"—":Math.round(tot))+" км");
+
+  // speed (dashboard curve)
+  var sp=num("vehicle.drive.speedValue");
+  var disp = isNaN(sp)?"—":String(Math.round(sp)+(sp<15?0:sp<30?2:3));
+  sethtml("speed", disp+'<small>км/ч</small>');
+
+  // pedal
+  var pedal=firstNum("vehicle.drive.accelPedalPos");
+  sethtml("pedal", (isNaN(pedal)?"—":Math.round(Math.max(0,Math.min(100,pedal/10))))+'<small>%</small>');
+
+  // power
+  var ei=num("vehicle.energyRecycle.energyIndicate");
+  var V=num("vehicle.drive.totalVoltage"), I=num("vehicle.drive.totalCurrent");
+  var pwrQ, pwrBig, barW=0, barCol="var(--amber)";
+  if(!isNaN(ei)&&ei>1){ pwrQ='расход<br>'+Math.round(ei)+'%'; pwrBig='⚡ Расход: '+Math.round(ei)+' %'; barW=Math.min(100,ei); barCol="var(--amber)"; }
+  else if(!isNaN(V)&&!isNaN(I)&&I>0.5){ var kw=V*I/1000; pwrQ='рекуп<br>'+kw.toFixed(1)+' кВт'; pwrBig='♻ Рекуперация: '+kw.toFixed(1)+' кВт'; barW=Math.min(100,kw/40*100); barCol="var(--green)"; }
+  else if(!isNaN(ei)&&ei<-1){ pwrQ='рекуп<br>'+Math.round(-ei)+'%'; pwrBig='♻ Рекуперация: '+Math.round(-ei)+' %'; barW=Math.min(100,-ei); barCol="var(--green)"; }
+  else { pwrQ='0'; pwrBig='— 0'; barW=0; }
+  sethtml("pwrQ", '<span style="font-size:.6em;line-height:1.1;display:inline-block">'+pwrQ+'</span>');
+  set("pwrBig", pwrBig);
+  var pb=document.getElementById("pwrBar"); pb.style.width=barW+"%"; pb.style.background=barCol;
+  var pbig=document.getElementById("pwrBig"); pbig.style.color = barW===0?"var(--muted)":barCol;
+  set("batV", isNaN(V)?"— В":Math.round(V)+" В");
+  set("batA", (isNaN(I)?"—":I.toFixed(1))+" А");
+
+  // cost
+  var o=tec(), pe=price("elec",0.05), pf=price("fuel",1.40);
+  var periods=[["current","Поездка"],["charge","С зарядки / заправки"],["tripA","Trip машины"],["total","Всё время"]];
+  var html="";
+  for(var i=0;i<periods.length;i++){
+    var key=periods[i][0], name=periods[i][1];
+    var p=o?o[key]:null;
+    if(!p){ html+='<div class="period"><div class="top"><span class="name">'+name+'</span><span class="dist">…</span></div></div>'; continue; }
+    var el=secElec(p), fu=secFuel(p), di=jd(p,"distance");
+    var ce=(isNaN(el)?0:el)*pe, cf=(isNaN(fu)?0:fu)*pf, tt=ce+cf;
+    var brk='эл '+f1(el)+' кВт·ч = '+ce.toFixed(2)+' ман';
+    if(!isNaN(fu)&&fu>0.05) brk+=' · бенз '+f1(fu)+' л = '+cf.toFixed(2)+' ман';
+    html+='<div class="period"><div class="top"><span class="name">'+name+'</span><span class="dist tnum">'+(isNaN(di)?"—":di.toFixed(1))+' км</span></div>'
+        + '<div class="brk tnum">'+brk+'</div>'
+        + '<div class="tot tnum">'+tt.toFixed(2)+' ман <small>итого</small></div></div>';
+  }
+  sethtml("costBox", html);
+
+  // odometer / fuel
+  set("odo", f1(num("vehicle.drive.totalMileage"))+" км");
+  set("odoE", f1(num("vehicle.drive.totalMileageElectricity"))+" км");
+  set("odoF", f1(num("vehicle.drive.totalMileageFuel"))+" км");
+  var fv=firstNum("vehicle.energyRecycle.residueFuelInfo");
+  set("fuel", isNaN(fv)?"—":(Math.round(fv)+" л"));
+
+  // temps
+  set("tbat", i0(num("vehicle.drive.averageTemperature"))+" / "+i0(num("vehicle.drive.maxTemperature"))+" / "+i0(num("vehicle.drive.minTemperature"))+" °C");
+  set("tdc", i0(num("vehicle.energyRecycle.dcDCTemperature"))+" °C");
+  set("tout", i0(num("vehicle.drive.outsideTemperature"))+" °C");
+  set("tcab", i0(num("vehicle.airCondition.acInnerTemp"))+" °C");
+  set("v12", f1(num("vehicle.drive.loBattU"))+" В");
+
+  // tires
+  var tp=[["tfl","flTireState","tflT","flTireTemp"],["tfr","frTireState","tfrT","frTireTemp"],["trl","lrTireState","trlT","lrTireTemp"],["trr","rrTireState","trrT","rrTireTemp"]];
+  for(var j=0;j<tp.length;j++){
+    set(tp[j][0], f1(num("vehicle.drive."+tp[j][1]))+" бар");
+    set(tp[j][2], i0(num("vehicle.drive."+tp[j][3]))+" °");
+  }
+
+  // status
+  set("updated", state.ts ? ("обновлено "+timeAgo(state.ts)) : "—");
+  set("ivLine", parseInt(cfg.iv)||3);
+  set("srcLine", state.live ? "Источник: сервер" : "Источник: демо-данные");
+  var cls = state.live ? "dot" : (state.err ? "dot err" : "dot demo");
+  var word = state.live ? "онлайн" : (state.err ? "нет связи" : "демо");
+  var st = document.getElementById("statetxt");
+  if(st) st.innerHTML = '<span class="'+cls+'"></span> '+word;
+}
+
+function timeAgo(ts){ var s=Math.max(0,Math.round((Date.now()-ts)/1000)); if(s<60) return s+" c назад"; var m=Math.floor(s/60); return m+" мин назад"; }
+
+// ---- data loop ----
+var timer=null;
+function buildUrl(){
+  var u=(cfg.url||"").trim(); if(!u) return null;
+  var k=(cfg.key||"").trim();
+  if(k) u += (u.indexOf("?")>=0?"&":"?")+"key="+encodeURIComponent(k);
+  return u;
+}
+function tick(){
+  var url=buildUrl();
+  if(!url){ state.data=DEMO; state.live=false; state.err=false; render(); return; }
+  fetch(url,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(j){
+      var d = j && j.data ? j.data : j;        // accept {data:{…}} or a flat map
+      if(d && typeof d==="object"){ state.data=d; state.live=true; state.err=false; state.ts=(j&&j.ts)?(j.ts>2e10?j.ts:j.ts*1000):Date.now(); }
+      render();
+    })
+    .catch(function(){ state.err=true; state.live=false; if(!state.ts) state.data=DEMO; render(); });
+}
+function startLoop(){
+  if(timer) clearInterval(timer);
+  tick();
+  var iv=Math.max(1,parseInt(cfg.iv)||3)*1000;
+  timer=setInterval(tick, iv);
+}
+
+// ---- settings ----
+function openSettings(){
+  document.getElementById("cfgUrl").value=cfg.url||"";
+  document.getElementById("cfgKey").value=cfg.key||"";
+  document.getElementById("cfgElec").value=cfg.elec||"";
+  document.getElementById("cfgFuel").value=cfg.fuel||"";
+  document.getElementById("cfgIv").value=cfg.iv||"";
+  document.getElementById("settings").hidden=false;
+}
+function closeSettings(){ document.getElementById("settings").hidden=true; }
+document.getElementById("gearBtn").addEventListener("click",openSettings);
+document.getElementById("cancelBtn").addEventListener("click",closeSettings);
+document.getElementById("saveBtn").addEventListener("click",function(){
+  cfg.url=document.getElementById("cfgUrl").value.trim();
+  cfg.key=document.getElementById("cfgKey").value.trim();
+  cfg.elec=document.getElementById("cfgElec").value.trim()||"0.05";
+  cfg.fuel=document.getElementById("cfgFuel").value.trim()||"1.40";
+  cfg.iv=document.getElementById("cfgIv").value.trim()||"3";
+  saveCfg(cfg); closeSettings(); startLoop();
+});
+document.getElementById("settings").addEventListener("click",function(e){ if(e.target===this) closeSettings(); });
+
+startLoop();
+</script>
